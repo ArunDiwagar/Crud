@@ -1,12 +1,13 @@
+// MyVerticallyCenteredModal.jsx
 import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { useDispatch, useSelector } from 'react-redux';
-import {  updateTaskInServer } from '../Slices/tasksSlice';
+import { updateTaskInServer } from '../Slices/tasksSlice';
 
 const MyVerticallyCenteredModal = (props) => {
-  const { selectedList } = useSelector((state) => state.task); // Use selectedList instead of taskList
+  const { selectedList } = useSelector((state) => state.task); // Use selectedList from state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [id, setId] = useState(0);
@@ -15,7 +16,15 @@ const MyVerticallyCenteredModal = (props) => {
 
   const updateTask = () => {
     props.onHide();
-    dispatch(updateTaskInServer({ id, title, description }));
+    const task = { id, title, description };
+    dispatch(updateTaskInServer(task))
+      .unwrap()
+      .then(() => {
+          console.log('Task updated successfully');
+      })
+      .catch((error) => {
+          alert(`Failed to update task: ${error.error}`);
+      });
   };
 
   useEffect(() => {
@@ -41,7 +50,7 @@ const MyVerticallyCenteredModal = (props) => {
       <Modal.Body>
         <Form>
           <Form.Group className="mb-3" controlId="formBasicEmail">
-            <Form.Label>Task title</Form.Label>
+            <Form.Label>Task Title</Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter Task Title"

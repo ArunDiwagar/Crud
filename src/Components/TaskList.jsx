@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import MyVerticallyCenteredModal from "./UpdateTask";
+import ConfirmModal from "./ConfirmModal";  // Import the ConfirmModal component
 import { useDispatch, useSelector } from "react-redux";
 import {
   deleteTaskFromServer,
@@ -14,6 +15,8 @@ const TaskList = () => {
   const dispatch = useDispatch();
   const { taskList } = useSelector((state) => state.task);
   const [modalShow, setModalShow] = useState(false);
+  const [confirmShow, setConfirmShow] = useState(false); // Modal state for confirmation
+  const [selectedTask, setSelectedTask] = useState(null); // State to store the task to delete
 
   const updateTask = (task) => {
     dispatch(setSelectedTask(task)); // Set the selected task
@@ -24,18 +27,25 @@ const TaskList = () => {
     dispatch(getTaskFromServer());
   }, [dispatch]);
 
-  const deleteTask = (task) => {
-    dispatch(deleteTaskFromServer(task))
+  const handleDelete = () => {
+    dispatch(deleteTaskFromServer(selectedTask))
       .unwrap()
       .then(() => {
         // Remove the task from the local state
-        dispatch(removeTaskFromList(task));
+        dispatch(removeTaskFromList(selectedTask));
+        setConfirmShow(false); // Close the modal after deleting
       })
       .catch((error) => {
         console.error("Failed to delete task:", error);
         alert(`Failed to delete task: ${error.error}`);
       });
   };
+
+  const deleteTask = (task) => {
+    setSelectedTask(task); // Set the selected task for deletion
+    setConfirmShow(true);  // Show the confirmation modal
+  };
+
   return (
     <>
       <Table striped bordered hover>
@@ -62,7 +72,7 @@ const TaskList = () => {
                   >
                     <i className="bi bi-pen-fill"></i>
                   </Button>
-                  <Button variant="primary" onClick={() => deleteTask(task)}>
+                  <Button variant="danger" onClick={() => deleteTask(task)}>
                     <i className="bi bi-trash3"></i>
                   </Button>
                 </td>
@@ -70,9 +80,19 @@ const TaskList = () => {
             ))}
         </tbody>
       </Table>
+      
+      {/* Update Task Modal */}
       <MyVerticallyCenteredModal
         show={modalShow}
         onHide={() => setModalShow(false)}
+      />
+
+      {/* Confirm Deletion Modal */}
+      <ConfirmModal
+        show={confirmShow}
+        handleClose={() => setConfirmShow(false)} // Close modal
+        handleConfirm={handleDelete}             // Confirm deletion
+        task={selectedTask}
       />
     </>
   );
